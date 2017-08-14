@@ -1,0 +1,6 @@
+[package]
+name = "RShell"
+version = "0.1.0"
+authors = ["sbutler2901 <sbsoftware@protonmail.com>"]
+
+[dependencies]
