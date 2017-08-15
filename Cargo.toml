@@ -1,6 +1,9 @@
 [package]
 name = "rsh"
 version = "0.1.0"
-authors = ["sbutler2901 <sbsoftware@protonmail.com>"]
+authors = ["Seth Butler <sbsoftware@protonmail.com>"]
+description = "A basic unix shell written in Rust"
+license-file = "LICENSE"
+readme = "README.md"
 
 [dependencies]
