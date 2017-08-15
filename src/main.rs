@@ -6,8 +6,13 @@ use std::process::ExitStatus;
 use std::path::{ /*Path,*/ PathBuf };
 use std::str::SplitWhitespace;
 use std::os::unix::process::ExitStatusExt;
-use std::fs;
 
+mod builtins;
+mod shelldirs;
+mod utils;
+
+use shelldirs::ShellDirs;
+use utils::*;
 
 // Built in commands to be implemented:
 // 1. fg / bg / jobs
@@ -28,15 +33,16 @@ use std::fs;
 // 1. Result: Ok(), etc
 // 2. Option: Some(), None
 
-struct ShellDirectories {
+/*
+struct ShellDirs {
     user_home: PathBuf,
     current: PathBuf,
     previous: PathBuf,
 }
 
-impl ShellDirectories {
-    fn new() -> ShellDirectories {
-        let new_shell_dir = ShellDirectories {
+impl ShellDirs {
+    fn new() -> ShellDirs {
+        let new_shell_dir = ShellDirs {
             user_home: PathBuf::new(),
             current: PathBuf::new(),
             previous: PathBuf::new(),
@@ -51,6 +57,7 @@ impl ShellDirectories {
         }
     }
 }
+*/
 
 /*
 fn print_paths() {
@@ -65,7 +72,7 @@ fn print_paths() {
         None => println!("{} is not defined in the enviornment.", key)
     }
 }*/
-
+/*
 fn which(cmd: Option<&str>) {
     if let Some(cmd_unwrapped) = cmd {
         match cmd_unwrapped {
@@ -85,14 +92,14 @@ fn which(cmd: Option<&str>) {
             }
         };
     }
-}
-
-fn print_working_directory(shell_dirs: &ShellDirectories) {
+}*/
+/*
+fn print_working_directory(shell_dirs: &ShellDirs) {
     println!("{}", shell_dirs.current.display());
-}
-
+}*/
+/*
 // TODO - Create error to be handled in case it is not a dir path
-fn is_dir_path(dir_path: &str) -> bool {
+pub fn is_dir_path(dir_path: &str) -> bool {
     if let Ok(metadata) = fs::metadata(dir_path) {
         metadata.is_dir()
     } else {
@@ -103,9 +110,10 @@ fn is_dir_path(dir_path: &str) -> bool {
             false
         }
     }
-}
+}*/
 
-fn cd(shell_dirs: &mut ShellDirectories, path_wrapped: Option<&str>) /*-> ExitStatus*/ {
+/*
+fn cd(shell_dirs: &mut ShellDirs, path_wrapped: Option<&str>) /*-> ExitStatus*/ {
     if let Some(path_unwrapped) = path_wrapped {
         if is_dir_path(path_unwrapped) {
             let temp_path_buf: PathBuf;
@@ -133,7 +141,7 @@ fn cd(shell_dirs: &mut ShellDirectories, path_wrapped: Option<&str>) /*-> ExitSt
 
     //let exitStatus = ExitStatusExt::from_raw(0);
     //exitStatus
-}
+}*/
 
 fn exec_cmd(cmd: &str, cmd_str_iter: &mut SplitWhitespace) -> ExitStatus {
     let exit_status;
@@ -155,7 +163,7 @@ fn get_input(input_str: &mut String) {
     io::stdin().read_line(input_str).expect("Failed to read line");
 }
 
-fn setup_shell_dirs(shell_dirs: &mut ShellDirectories) {
+fn setup_shell_dirs(shell_dirs: &mut ShellDirs) {
     if let Ok(current_dir) = env::current_dir() {
         shell_dirs.current = current_dir;
     }
@@ -177,11 +185,11 @@ fn dirs(pushed_dirs: &Vec<PathBuf>) {
     }
 }
 
-fn pushd(pushed_dirs: &mut Vec<PathBuf>, shell_dirs: &mut ShellDirectories, path: Option<&str>) {
+fn pushd(pushed_dirs: &mut Vec<PathBuf>, shell_dirs: &mut ShellDirs, path: Option<&str>) {
     if let Some(dir_path) = path {
         if is_dir_path(dir_path) {
             pushed_dirs.push(PathBuf::from(shell_dirs.current.as_path()));
-            cd(shell_dirs, path);
+            builtins::cd::cd(shell_dirs, path);
             dirs(&pushed_dirs);
         } else {
             println!("pushd: {} is not a directory", dir_path);
@@ -189,16 +197,16 @@ fn pushd(pushed_dirs: &mut Vec<PathBuf>, shell_dirs: &mut ShellDirectories, path
     }
 }
 
-fn popd(pushed_dirs: &mut Vec<PathBuf>, shell_dirs: &mut ShellDirectories) {
+fn popd(pushed_dirs: &mut Vec<PathBuf>, shell_dirs: &mut ShellDirs) {
     if let Some(popped_dir) = pushed_dirs.pop() {
-        cd(shell_dirs, popped_dir.to_str());
+        builtins::cd::cd(shell_dirs, popped_dir.to_str());
         dirs(&pushed_dirs);
     } else {
         println!("popd: directory stack is empty");
     }
 }
 
-fn print_left_prompt(shell_dirs: &ShellDirectories) {
+fn print_left_prompt(shell_dirs: &shelldirs::ShellDirs) {
     print!("{}> ", shell_dirs.current.display());
     io::stdout().flush().unwrap();
 }
@@ -208,7 +216,7 @@ fn main() {
     println!("Welcome to R(ust)Shell");
 //    print_paths();
 
-    let mut shell_dirs = ShellDirectories::new();
+    let mut shell_dirs = shelldirs::ShellDirs::new();
     let mut pushed_dirs: Vec<PathBuf> = Vec::new();     //TODO - Add limit to stack
     setup_shell_dirs(&mut shell_dirs); 
 
@@ -225,14 +233,14 @@ fn main() {
             match cmd_unwrapped {
                 "cd" => {
                     let dir_path = cmd_str_iter.next();
-                    cd(&mut shell_dirs, dir_path);
+                    builtins::cd::cd(&mut shell_dirs, dir_path);
                  },
                  "pwd" => {
-                     print_working_directory(&shell_dirs);
+                     builtins::pwd::pwd(&shell_dirs);
                 },
                 "which" => {
                     let second_cmd = cmd_str_iter.next();
-                    which(second_cmd);
+                    builtins::which::which(second_cmd);
                 },
                 "pushd" => {
                     let dir_path = cmd_str_iter.next();
