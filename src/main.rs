@@ -10,8 +10,7 @@ use std::fs;
 
 
 // Built in commands to be implemented:
-// 1. fg
-// 2. bg
+// 1. fg / bg / jobs
 // 3. where
 // 4. which*
 // 5. echo
@@ -245,7 +244,7 @@ fn main() {
                 "dirs" => {
                     dirs(&pushed_dirs);
                 },
-                "exit" | "quit" => { break; },
+                "exit" => { break; },
                 _ => {
                     let exit_status = exec_cmd(&cmd_unwrapped, &mut cmd_str_iter);
                     println!("{} - {}", cmd_unwrapped, exit_status);
