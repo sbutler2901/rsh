@@ -1,6 +1,6 @@
 use std::io;
 use std::io::Write;
-use std::env;
+//use std::env;
 use std::process::Command;
 use std::process::ExitStatus;
 use std::path::{ /*Path,*/ PathBuf };
@@ -163,6 +163,7 @@ fn get_input(input_str: &mut String) {
     io::stdin().read_line(input_str).expect("Failed to read line");
 }
 
+/*
 fn setup_shell_dirs(shell_dirs: &mut ShellDirs) {
     if let Ok(current_dir) = env::current_dir() {
         shell_dirs.current = current_dir;
@@ -171,7 +172,7 @@ fn setup_shell_dirs(shell_dirs: &mut ShellDirs) {
         shell_dirs.user_home = user_home;
         shell_dirs.previous = PathBuf::from(shell_dirs.user_home.as_path());
     }
-}
+}*/
 
 fn dirs(pushed_dirs: &Vec<PathBuf>) {
     if !pushed_dirs.is_empty() {
@@ -218,7 +219,7 @@ fn main() {
 
     let mut shell_dirs = shelldirs::ShellDirs::new();
     let mut pushed_dirs: Vec<PathBuf> = Vec::new();     //TODO - Add limit to stack
-    setup_shell_dirs(&mut shell_dirs); 
+    ShellDirs::setup(&mut shell_dirs); 
 
     loop {
         print_left_prompt(&shell_dirs);

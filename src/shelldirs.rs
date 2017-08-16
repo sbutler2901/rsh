@@ -17,10 +17,22 @@ impl ShellDirs {
         new_shell_dir
     }
 
-    pub fn update_dirs(&mut self) {
+    pub fn setup(shell_dirs: &mut ShellDirs) {
         if let Ok(current_dir) = env::current_dir() {
+            shell_dirs.current = current_dir;
+        }
+        if let Some(user_home) = env::home_dir() {
+            shell_dirs.user_home = user_home;
+            shell_dirs.previous = PathBuf::from(shell_dirs.user_home.as_path());
+        }
+    }
+
+    pub fn update_dirs(&mut self, new_current: Option<PathBuf>) {
+        //if let Ok(current_dir) = env::current_dir() {
+        if let Some(new) = new_current {
             self.previous = PathBuf::from(self.current.as_path());
-            self.current = current_dir;
+            self.current = new;
+            //self.current = current_dir;
         }
     }
 }
