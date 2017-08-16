@@ -94,7 +94,6 @@ mod tests {
         let mut shell_dirs = ShellDirs::new();
         ShellDirs::setup(&mut shell_dirs);
 
-        // Verify previous
         let mut path = "-";
         let mut previous = shell_dirs.previous.clone();
         cd(&mut shell_dirs, Some(path));
@@ -112,14 +111,51 @@ mod tests {
         assert_eq!(shell_dirs.current, previous);
         assert_eq!(shell_dirs.previous, PathBuf::from("/tmp"));
     }
-/*
+
+    #[test]
     fn cd_handles_absolute() {
-    }
+        let mut shell_dirs = ShellDirs::new();
+        ShellDirs::setup(&mut shell_dirs);
 
-    fn cd_handles_root_parent() {
+        let path = "/etc";
+        let previous = shell_dirs.current.clone();
+        cd(&mut shell_dirs, Some(path));
+        assert_eq!(shell_dirs.current, PathBuf::from(path));
+        assert_eq!(shell_dirs.previous, previous);
     }
-
+    
+    #[test]
     fn cd_handles_none_option() {
+        let mut shell_dirs = ShellDirs::new();
+        ShellDirs::setup(&mut shell_dirs);
+
+        cd(&mut shell_dirs, None);
     }
-    */
+
+    #[test]
+    fn cd_handles_non_dir() {
+        let mut shell_dirs = ShellDirs::new();
+        ShellDirs::setup(&mut shell_dirs);
+        
+        let mut path = "index.html";
+        let mut current = shell_dirs.current.clone();
+        let mut previous = shell_dirs.previous.clone();
+        cd(&mut shell_dirs, Some(path));
+        assert_eq!(shell_dirs.current, current);
+        assert_eq!(shell_dirs.previous, previous);
+
+        path = "./index.html";
+        current = shell_dirs.current.clone();
+        previous = shell_dirs.previous.clone();
+        cd(&mut shell_dirs, Some(path));
+        assert_eq!(shell_dirs.current, current);
+        assert_eq!(shell_dirs.previous, previous);
+
+        path = "/tmp/index.html";
+        current = shell_dirs.current.clone();
+        previous = shell_dirs.previous.clone();
+        cd(&mut shell_dirs, Some(path));
+        assert_eq!(shell_dirs.current, current);
+        assert_eq!(shell_dirs.previous, previous);
+    }
 }
