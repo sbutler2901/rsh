@@ -32,117 +32,7 @@ use utils::*;
 // Helpful Notes:
 // 1. Result: Ok(), etc
 // 2. Option: Some(), None
-
-/*
-struct ShellDirs {
-    user_home: PathBuf,
-    current: PathBuf,
-    previous: PathBuf,
-}
-
-impl ShellDirs {
-    fn new() -> ShellDirs {
-        let new_shell_dir = ShellDirs {
-            user_home: PathBuf::new(),
-            current: PathBuf::new(),
-            previous: PathBuf::new(),
-        };
-        new_shell_dir
-    }
-
-    fn update_dirs(&mut self) {
-        if let Ok(current_dir) = env::current_dir() {
-            self.previous = PathBuf::from(self.current.as_path());
-            self.current = current_dir;
-        }
-    }
-}
-*/
-
-/*
-fn print_paths() {
-    println!("Paths:");
-    let key = "PATH";
-    match env::var_os(key) {
-        Some(paths) => {
-            for path in env::split_paths(&paths) {
-                println!("'{}'", path.display());
-            }
-        }
-        None => println!("{} is not defined in the enviornment.", key)
-    }
-}*/
-/*
-fn which(cmd: Option<&str>) {
-    if let Some(cmd_unwrapped) = cmd {
-        match cmd_unwrapped {
-            "fg" | "bg" | "which" | "pushd" | "popd" | "dirs"
-                => { println!("{} : shell builtin command", cmd_unwrapped); },
-            _ => {
-                if let Ok(mut child) = Command::new("/usr/bin/which")
-                                                .arg(cmd_unwrapped)
-                                                .spawn() 
-                {
-                    if let Err(e) = child.wait() {
-                        println!("Error waiting for child: {}", e);
-                    }
-                } else {
-                    println!("Error executing /usr/bin/which");
-                }
-            }
-        };
-    }
-}*/
-/*
-fn print_working_directory(shell_dirs: &ShellDirs) {
-    println!("{}", shell_dirs.current.display());
-}*/
-/*
-// TODO - Create error to be handled in case it is not a dir path
-pub fn is_dir_path(dir_path: &str) -> bool {
-    if let Ok(metadata) = fs::metadata(dir_path) {
-        metadata.is_dir()
-    } else {
-        let path_buf = PathBuf::from(dir_path);
-        if path_buf.is_relative() {
-            true
-        } else {
-            false
-        }
-    }
-}*/
-
-/*
-fn cd(shell_dirs: &mut ShellDirs, path_wrapped: Option<&str>) /*-> ExitStatus*/ {
-    if let Some(path_unwrapped) = path_wrapped {
-        if is_dir_path(path_unwrapped) {
-            let temp_path_buf: PathBuf;
-            let path = match path_unwrapped {
-                "." => { shell_dirs.current.as_path() },
-                ".." => { 
-                    // FIXME - panics when this is provided and in the root directory
-                    shell_dirs.current.parent().unwrap() 
-                },
-                "~" => { shell_dirs.user_home.as_path() },
-                "-" => { shell_dirs.previous.as_path() },
-                _ => { 
-                    temp_path_buf = PathBuf::from(path_unwrapped);
-                    temp_path_buf.as_path()
-                },
-            };
-            if let Err(e) = env::set_current_dir(path) {
-                println!("Error changing directory: {}", e);
-            }
-        }
-    } else {
-        println!("Please enter an appropriate path");
-    }
-    shell_dirs.update_dirs();
-
-    //let exitStatus = ExitStatusExt::from_raw(0);
-    //exitStatus
-}*/
-
+//
 fn exec_cmd(cmd: &str, cmd_str_iter: &mut SplitWhitespace) -> ExitStatus {
     let exit_status;
     if let Ok(mut child) = Command::new(cmd).args(cmd_str_iter).spawn() {
@@ -162,17 +52,6 @@ fn exec_cmd(cmd: &str, cmd_str_iter: &mut SplitWhitespace) -> ExitStatus {
 fn get_input(input_str: &mut String) {
     io::stdin().read_line(input_str).expect("Failed to read line");
 }
-
-/*
-fn setup_shell_dirs(shell_dirs: &mut ShellDirs) {
-    if let Ok(current_dir) = env::current_dir() {
-        shell_dirs.current = current_dir;
-    }
-    if let Some(user_home) = env::home_dir() {
-        shell_dirs.user_home = user_home;
-        shell_dirs.previous = PathBuf::from(shell_dirs.user_home.as_path());
-    }
-}*/
 
 fn dirs(pushed_dirs: &Vec<PathBuf>) {
     if !pushed_dirs.is_empty() {
