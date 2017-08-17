@@ -2,10 +2,15 @@ use std::path::PathBuf;
 use std::env;
 
 use shelldirs::ShellDirs;
-use utils::is_dir_path;
 
-pub fn cd(shell_dirs: &mut ShellDirs, path_wrapped: Option<&str>) /*-> ExitStatus*/ {
-    let mut new_current: Option<PathBuf> = None;
+pub fn cd(shell_dirs: &mut ShellDirs, dir_path: &PathBuf) /*-> ExitStatus*/ {
+    if let Err(e) = env::set_current_dir(dir_path) {
+        println!("Error changing directory: {}", e);
+    } else {
+        let new_current = dir_path.clone();
+        shell_dirs.update_dirs(new_current);
+    }
+/*    let mut new_current: Option<PathBuf> = None;
     if let Some(path_unwrapped) = path_wrapped {
         if is_dir_path(path_unwrapped) {
             let temp_path_buf: PathBuf;
@@ -38,6 +43,7 @@ pub fn cd(shell_dirs: &mut ShellDirs, path_wrapped: Option<&str>) /*-> ExitStatu
 
     //let exitStatus = ExitStatusExt::from_raw(0);
     //exitStatus
+    */
 }
 
 #[cfg(test)]

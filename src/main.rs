@@ -1,9 +1,8 @@
 use std::io;
 use std::io::Write;
-//use std::env;
 use std::process::Command;
 use std::process::ExitStatus;
-use std::path::{ /*Path,*/ PathBuf };
+use std::path::PathBuf;
 use std::str::SplitWhitespace;
 use std::os::unix::process::ExitStatusExt;
 
@@ -65,21 +64,19 @@ fn dirs(pushed_dirs: &Vec<PathBuf>) {
     }
 }
 
-fn pushd(pushed_dirs: &mut Vec<PathBuf>, shell_dirs: &mut ShellDirs, path: Option<&str>) {
-    if let Some(dir_path) = path {
-        if is_dir_path(dir_path) {
-            pushed_dirs.push(PathBuf::from(shell_dirs.current.as_path()));
-            builtins::cd::cd(shell_dirs, path);
-            dirs(&pushed_dirs);
-        } else {
+fn pushd(pushed_dirs: &mut Vec<PathBuf>, shell_dirs: &mut ShellDirs, path: &PathBuf) {
+    pushed_dirs.push(PathBuf::from(shell_dirs.current.as_path()));
+    builtins::cd::cd(shell_dirs, path);
+    dirs(&pushed_dirs);
+   /* } else {
             println!("pushd: {} is not a directory", dir_path);
         }
-    }
+    }*/
 }
 
 fn popd(pushed_dirs: &mut Vec<PathBuf>, shell_dirs: &mut ShellDirs) {
     if let Some(popped_dir) = pushed_dirs.pop() {
-        builtins::cd::cd(shell_dirs, popped_dir.to_str());
+        builtins::cd::cd(shell_dirs, &popped_dir);
         dirs(&pushed_dirs);
     } else {
         println!("popd: directory stack is empty");
@@ -91,6 +88,40 @@ fn print_left_prompt(shell_dirs: &shelldirs::ShellDirs) {
     io::stdout().flush().unwrap();
 }
 
+fn relative_to_absolute(shell_dirs: &ShellDirs, dir_path: &mut PathBuf) {
+    let prefixed_path = dir_path.clone();
+    if prefixed_path.starts_with("./") {
+        if let Ok(stripped) = prefixed_path.strip_prefix("./") {
+            //let prefix: PathBuf = shell_dirs.current.clone();
+            let joined = shell_dirs.current.join(stripped);
+            dir_path.clone_from(&joined);
+        }
+    } else if prefixed_path.starts_with("../") {
+        if let Ok(stripped) = prefixed_path.strip_prefix("../") {
+            let parent_path;
+            if let Some(parent) = shell_dirs.current.parent() {
+                parent_path = parent.to_path_buf();
+            } else {
+                parent_path = shell_dirs.current.clone();
+            }
+            let joined = parent_path.join(stripped);
+            dir_path.clone_from(&joined);
+        }
+    } else if dir_path.starts_with("~/") {
+        if let Ok(stripped) = prefixed_path.strip_prefix("~/") {
+            //let prefix: PathBuf = shell_dirs.user_home.clone();
+            let joined = shell_dirs.user_home.join(stripped);
+            dir_path.clone_from(&joined);
+        }
+    } else if dir_path.starts_with("-") {
+        if let Ok(stripped) = prefixed_path.strip_prefix("-") {
+            //let prefix: PathBuf = shell_dirs.user_home.clone();
+            let joined = shell_dirs.previous.join(stripped);
+            dir_path.clone_from(&joined);
+        }
+    }
+    println!("Absolute path is: {}", dir_path.display());
+}
 
 fn main() {
     println!("Welcome to R(ust)Shell");
@@ -112,8 +143,16 @@ fn main() {
         if let Some(cmd_unwrapped) = cmd_wrapped {
             match cmd_unwrapped {
                 "cd" => {
-                    let dir_path = cmd_str_iter.next();
-                    builtins::cd::cd(&mut shell_dirs, dir_path);
+                    if let Some(received_path) = cmd_str_iter.next() {
+                        let orig_path = PathBuf::from(received_path);
+                        let mut dir_path = PathBuf::from(received_path);
+                        relative_to_absolute(&shell_dirs, &mut dir_path);
+                        if is_dir_path(&dir_path) {
+                            builtins::cd::cd(&mut shell_dirs, &dir_path);
+                        } else {
+                            println!("cd: not a directory: {}", orig_path.display());
+                        }
+                    }
                  },
                  "pwd" => {
                      builtins::pwd::pwd(&shell_dirs);
@@ -123,9 +162,17 @@ fn main() {
                     builtins::which::which(second_cmd);
                 },
                 "pushd" => {
-                    let dir_path = cmd_str_iter.next();
-                    pushd(&mut pushed_dirs, &mut shell_dirs, dir_path);
-                },
+                    if let Some(received_path) = cmd_str_iter.next() {
+                        let orig_path = PathBuf::from(received_path);
+                        let mut dir_path = orig_path.clone();
+                        relative_to_absolute(&shell_dirs, &mut dir_path);
+                        if is_dir_path(&dir_path) {
+                            pushd(&mut pushed_dirs, &mut shell_dirs, &dir_path);
+                        } else {
+                            println!("pushd: not a directory: {}", orig_path.display());
+                        }
+                    }
+                                    },
                 "popd" => {
                     popd(&mut pushed_dirs, &mut shell_dirs);
                 },

@@ -1,22 +1,12 @@
-use std::fs;
+//use std::fs;
 use std::path::PathBuf;
 
 // TODO - Create error to be handled in case it is not a dir path
-pub fn is_dir_path(dir_path: &str) -> bool {
-    println!("path: {}", dir_path);
-    if let Ok(metadata) = fs::metadata(dir_path) {
-        println!("metadata was okay");
-        metadata.is_dir()
+pub fn is_dir_path(dir_path: &PathBuf) -> bool {
+    if let Ok(metadata) = dir_path.metadata() {
+       metadata.is_dir() 
     } else {
         false
-        /*let path_buf = PathBuf::from(dir_path);
-        if path_buf.is_relative() {
-            println!("is a relative path");
-            true
-        } else {
-            println!("is not a relative path");
-            false
-        }*/
     }
 }
 

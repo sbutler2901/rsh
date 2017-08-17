@@ -27,12 +27,12 @@ impl ShellDirs {
         }
     }
 
-    pub fn update_dirs(&mut self, new_current: Option<PathBuf>) {
+    pub fn update_dirs(&mut self, new_current: /*Option<*/PathBuf/*>*/) {
         //if let Ok(current_dir) = env::current_dir() {
-        if let Some(new) = new_current {
+//        if let Some(new) = new_current {
             self.previous = PathBuf::from(self.current.as_path());
-            self.current = new;
+            self.current = new_current;
             //self.current = current_dir;
-        }
+        //}
     }
 }
