@@ -23,16 +23,7 @@ impl ShellDirs {
         }
         if let Some(user_home) = env::home_dir() {
             shell_dirs.user_home = user_home;
-            shell_dirs.previous = PathBuf::from(shell_dirs.user_home.as_path());
+            shell_dirs.previous = shell_dirs.user_home.clone();
         }
-    }
-
-    pub fn update_dirs(&mut self, new_current: /*Option<*/PathBuf/*>*/) {
-        //if let Ok(current_dir) = env::current_dir() {
-//        if let Some(new) = new_current {
-            self.previous = PathBuf::from(self.current.as_path());
-            self.current = new_current;
-            //self.current = current_dir;
-        //}
     }
 }
