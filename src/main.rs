@@ -52,37 +52,6 @@ fn get_input(input_str: &mut String) {
     io::stdin().read_line(input_str).expect("Failed to read line");
 }
 
-fn dirs(pushed_dirs: &Vec<PathBuf>) {
-    if !pushed_dirs.is_empty() {
-        let pushed_reversed_iter = pushed_dirs.iter().rev();
-        for dir in pushed_reversed_iter {
-            print!("{} ", dir.display());
-        }
-        println!("");
-    } else {
-        println!("Directory stack is empty");
-    }
-}
-
-fn pushd(pushed_dirs: &mut Vec<PathBuf>, shell_dirs: &mut ShellDirs, path: &PathBuf) {
-    pushed_dirs.push(PathBuf::from(shell_dirs.current.as_path()));
-    builtins::cd::cd(shell_dirs, path);
-    dirs(&pushed_dirs);
-   /* } else {
-            println!("pushd: {} is not a directory", dir_path);
-        }
-    }*/
-}
-
-fn popd(pushed_dirs: &mut Vec<PathBuf>, shell_dirs: &mut ShellDirs) {
-    if let Some(popped_dir) = pushed_dirs.pop() {
-        builtins::cd::cd(shell_dirs, &popped_dir);
-        dirs(&pushed_dirs);
-    } else {
-        println!("popd: directory stack is empty");
-    }
-}
-
 fn print_left_prompt(shell_dirs: &shelldirs::ShellDirs) {
     print!("{}> ", shell_dirs.current.display());
     io::stdout().flush().unwrap();
@@ -130,17 +99,17 @@ fn main() {
                         let orig_path = PathBuf::from(received_path);
                         let dir_path = relative_to_absolute(&shell_dirs, &orig_path);
                         if is_dir_path(&dir_path) {
-                            pushd(&mut pushed_dirs, &mut shell_dirs, &dir_path);
+                            builtins::dirstack::pushd(&mut pushed_dirs, &mut shell_dirs, &dir_path);
                         } else {
                             println!("pushd: not a directory: {}", orig_path.display());
                         }
                     }
                                     },
                 "popd" => {
-                    popd(&mut pushed_dirs, &mut shell_dirs);
+                    builtins::dirstack::popd(&mut pushed_dirs, &mut shell_dirs);
                 },
                 "dirs" => {
-                    dirs(&pushed_dirs);
+                    builtins::dirstack::dirs(&pushed_dirs);
                 },
                 "exit" => { break; },
                 _ => {

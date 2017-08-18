@@ -1,5 +1,4 @@
 use std::path::PathBuf;
-use std::env;
 
 use shelldirs::ShellDirs;
 use utils::is_dir_path;
@@ -14,8 +13,9 @@ pub fn cd(shell_dirs: &mut ShellDirs, dir_path: &PathBuf) {
 }
 
 
-fn update_dirs(&mut shell_dirs: ShellDirs, new_current: PathBuf) {
-    shell_dirs.previous = PathBuf::from(shell_dirs.current.as_path());
+fn update_dirs(shell_dirs: &mut ShellDirs, new_current: PathBuf) {
+    //shell_dirs.previous = PathBuf::from(shell_dirs.current.as_path());
+    shell_dirs.previous = shell_dirs.current.clone();
     shell_dirs.current = new_current;
 }
 
