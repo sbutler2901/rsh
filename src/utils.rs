@@ -1,15 +1,13 @@
-//use std::fs;
 use std::path::PathBuf;
 use shelldirs::ShellDirs;
 
-
-pub fn relative_to_absolute(shell_dirs: &ShellDirs, dir_path: &mut PathBuf) {
-    let prefixed_path = dir_path.clone();
+/// Takes a path and if it is relative it converts it to an absolute path
+pub fn relative_to_absolute(shell_dirs: &ShellDirs, path: &PathBuf) -> PathBuf {
+    let prefixed_path: PathBuf = path.clone();
+    let mut joined: PathBuf = path.clone();
     if prefixed_path.starts_with("./") {
         if let Ok(stripped) = prefixed_path.strip_prefix("./") {
-            //let prefix: PathBuf = shell_dirs.current.clone();
-            let joined = shell_dirs.current.join(stripped);
-            dir_path.clone_from(&joined);
+            joined = shell_dirs.current.join(stripped);
         }
     } else if prefixed_path.starts_with("../") {
         if let Ok(stripped) = prefixed_path.strip_prefix("../") {
@@ -19,32 +17,30 @@ pub fn relative_to_absolute(shell_dirs: &ShellDirs, dir_path: &mut PathBuf) {
             } else {
                 parent_path = shell_dirs.current.clone();
             }
-            let joined = parent_path.join(stripped);
-            dir_path.clone_from(&joined);
+            joined = parent_path.join(stripped);
         }
-    } else if dir_path.starts_with("~/") {
+    } else if path.starts_with("~/") {
         if let Ok(stripped) = prefixed_path.strip_prefix("~/") {
-            //let prefix: PathBuf = shell_dirs.user_home.clone();
-            let joined = shell_dirs.user_home.join(stripped);
-            dir_path.clone_from(&joined);
+            joined = shell_dirs.user_home.join(stripped);
         }
-    } else if dir_path.starts_with("-") {
+    } else if path.starts_with("-") {
         if let Ok(stripped) = prefixed_path.strip_prefix("-") {
-            //let prefix: PathBuf = shell_dirs.user_home.clone();
-            let joined = shell_dirs.previous.join(stripped);
-            dir_path.clone_from(&joined);
+            joined = shell_dirs.previous.join(stripped);
         }
     }
-    println!("Absolute path is: {}", dir_path.display());
+    //println!("Absolute path is: {}", joined.display());
+    joined
 }
 
-// Assumes dir_path is an absolute path
+// Assumes path is absolute else it returns false
 pub fn is_dir_path(dir_path: &PathBuf) -> bool {
-    if let Ok(metadata) = dir_path.metadata() {
-        metadata.is_dir() 
-    } else {
-        false
+    let mut is_dir_path = false;
+    if dir_path.is_absolute() {
+        if let Ok(metadata) = dir_path.metadata() {
+            is_dir_path = metadata.is_dir() 
+        }
     }
+    is_dir_path
 }
 
 #[cfg(test)]

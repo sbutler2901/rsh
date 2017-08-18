@@ -110,8 +110,7 @@ fn main() {
                 "cd" => {
                     if let Some(received_path) = cmd_str_iter.next() {
                         let orig_path = PathBuf::from(received_path);
-                        let mut dir_path = PathBuf::from(received_path);
-                        relative_to_absolute(&shell_dirs, &mut dir_path);
+                        let dir_path = relative_to_absolute(&shell_dirs, &orig_path);
                         if is_dir_path(&dir_path) {
                             builtins::cd::cd(&mut shell_dirs, &dir_path);
                         } else {
@@ -129,8 +128,7 @@ fn main() {
                 "pushd" => {
                     if let Some(received_path) = cmd_str_iter.next() {
                         let orig_path = PathBuf::from(received_path);
-                        let mut dir_path = orig_path.clone();
-                        relative_to_absolute(&shell_dirs, &mut dir_path);
+                        let dir_path = relative_to_absolute(&shell_dirs, &orig_path);
                         if is_dir_path(&dir_path) {
                             pushd(&mut pushed_dirs, &mut shell_dirs, &dir_path);
                         } else {
