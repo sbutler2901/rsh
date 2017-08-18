@@ -31,7 +31,7 @@ use utils::*;
 // Helpful Notes:
 // 1. Result: Ok(), etc
 // 2. Option: Some(), None
-//
+
 fn exec_cmd(cmd: &str, cmd_str_iter: &mut SplitWhitespace) -> ExitStatus {
     let exit_status;
     if let Ok(mut child) = Command::new(cmd).args(cmd_str_iter).spawn() {
@@ -86,41 +86,6 @@ fn popd(pushed_dirs: &mut Vec<PathBuf>, shell_dirs: &mut ShellDirs) {
 fn print_left_prompt(shell_dirs: &shelldirs::ShellDirs) {
     print!("{}> ", shell_dirs.current.display());
     io::stdout().flush().unwrap();
-}
-
-fn relative_to_absolute(shell_dirs: &ShellDirs, dir_path: &mut PathBuf) {
-    let prefixed_path = dir_path.clone();
-    if prefixed_path.starts_with("./") {
-        if let Ok(stripped) = prefixed_path.strip_prefix("./") {
-            //let prefix: PathBuf = shell_dirs.current.clone();
-            let joined = shell_dirs.current.join(stripped);
-            dir_path.clone_from(&joined);
-        }
-    } else if prefixed_path.starts_with("../") {
-        if let Ok(stripped) = prefixed_path.strip_prefix("../") {
-            let parent_path;
-            if let Some(parent) = shell_dirs.current.parent() {
-                parent_path = parent.to_path_buf();
-            } else {
-                parent_path = shell_dirs.current.clone();
-            }
-            let joined = parent_path.join(stripped);
-            dir_path.clone_from(&joined);
-        }
-    } else if dir_path.starts_with("~/") {
-        if let Ok(stripped) = prefixed_path.strip_prefix("~/") {
-            //let prefix: PathBuf = shell_dirs.user_home.clone();
-            let joined = shell_dirs.user_home.join(stripped);
-            dir_path.clone_from(&joined);
-        }
-    } else if dir_path.starts_with("-") {
-        if let Ok(stripped) = prefixed_path.strip_prefix("-") {
-            //let prefix: PathBuf = shell_dirs.user_home.clone();
-            let joined = shell_dirs.previous.join(stripped);
-            dir_path.clone_from(&joined);
-        }
-    }
-    println!("Absolute path is: {}", dir_path.display());
 }
 
 fn main() {
