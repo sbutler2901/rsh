@@ -13,7 +13,7 @@ pub fn cd(shell_dirs: &mut ShellDirs, dir_path: &PathBuf) {
             update_dirs(shell_dirs, dir_path.clone());
         }
     } else {
-        println!("Err: provide an absolute directory path please");
+        println!("Err: cd: provide an absolute directory path please");
     }
 }
 

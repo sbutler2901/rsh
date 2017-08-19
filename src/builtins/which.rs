@@ -1,5 +1,6 @@
 use std::process::Command;
 
+// TODO - When shell environment variable PATHS has been implemented this will need to be modified
 pub fn which(cmd: Option<&str>) {
     if let Some(cmd_unwrapped) = cmd {
         match cmd_unwrapped {
