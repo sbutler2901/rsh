@@ -17,17 +17,19 @@ pub fn dirs(pushed_dirs: &Vec<PathBuf>) {
     }
 }
 
-// TODO - Implement error in case directory provided was not absolute or was not a dir path
 pub fn pushd(pushed_dirs: &mut Vec<PathBuf>, shell_dirs: &mut ShellDirs, dir_path: &PathBuf) -> Result<(), DirPathError> {
     if !dir_path.is_absolute() {
        Err(DirPathError::NotAbsolutePath) 
-    } else if !is_dir_path(dir_path) {
-        Err(DirPathError::NotDirectoryPath)
     } else {
-        pushed_dirs.push(PathBuf::from(shell_dirs.current.as_path()));
-        cd(shell_dirs, dir_path);
-        dirs(&pushed_dirs);
-        Ok(())
+        match is_dir_path(dir_path) {
+            Err(e) => Err(e),
+            Ok(_) => {
+                pushed_dirs.push(PathBuf::from(shell_dirs.current.as_path()));
+                cd(shell_dirs, dir_path);
+                dirs(&pushed_dirs);
+                Ok(())
+            }
+        }
     }
 }
 

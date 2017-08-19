@@ -9,6 +9,7 @@ use std::os::unix::process::ExitStatusExt;
 mod builtins;
 mod shelldirs;
 mod utils;
+mod dirpatherror;
 
 use shelldirs::ShellDirs;
 use utils::*;
@@ -99,7 +100,7 @@ fn main() {
                         let orig_path = PathBuf::from(received_path);
                         let dir_path = relative_to_absolute(&shell_dirs, &orig_path);
                         if is_dir_path(&dir_path) {
-                            builtins::dirstack::pushd(&mut pushed_dirs, &mut shell_dirs, &dir_path);
+                            builtins::dirstack::pushd(&mut pushed_dirs, &mut shell_dirs, &dir_path).unwrap();
                         } else {
                             println!("pushd: not a directory: {}", orig_path.display());
                         }

@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 use shelldirs::ShellDirs;
+use dirpatherror::DirPathError;
 
 /// Takes a path and if it is relative it converts it to an absolute path
 pub fn relative_to_absolute(shell_dirs: &ShellDirs, path: &PathBuf) -> PathBuf {
@@ -48,12 +49,16 @@ pub fn relative_to_absolute(shell_dirs: &ShellDirs, path: &PathBuf) -> PathBuf {
     absolute
 }
 
-// Assumes path is absolute else it returns false
-pub fn is_dir_path(dir_path: &PathBuf) -> bool {
-    let mut is_dir_path = false;
+// Only returns an Ok(bool) value if it is an absolute dir path. Else, it returns
+// the corresponding DirPathError
+pub fn is_dir_path(dir_path: &PathBuf) -> Result<bool, DirPathError> {
+    let mut is_dir_path = Err(DirPathError::NotAbsolutePath);
     if dir_path.is_absolute() {
         if let Ok(metadata) = dir_path.metadata() {
-            is_dir_path = metadata.is_dir() 
+            let is_dir_path = match metadata.is_dir() {
+                true => Ok(true),
+                false => Err(DirPathError::NotDirectoryPath),
+            };
         }
     }
     is_dir_path

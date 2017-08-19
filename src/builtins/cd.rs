@@ -3,23 +3,26 @@ use std::env;
 
 use shelldirs::ShellDirs;
 use utils::is_dir_path;
+use dirpatherror::DirPathError;
 
-// TODO - Implement error in case directory provided was not absolute or was not a dir path
-pub fn cd(shell_dirs: &mut ShellDirs, dir_path: &PathBuf) {
-    if dir_path.is_absolute() && is_dir_path(dir_path) {
+pub fn cd(shell_dirs: &mut ShellDirs, dir_path: &PathBuf) -> Result<(), DirPathError> {
+    if dir_path.is_absolute() {
+        Err(DirPathError::NotAbsolutePath)
+    } else if is_dir_path(dir_path)? {
+        Err(DirPathError::NotDirectoryPath)
+    } else {
         if let Err(e) = env::set_current_dir(dir_path) {
+            // TODO - Determine best way to handle this error
             println!("Error setting current dir to {}: {}", dir_path.display(), e);
         } else {
             update_dirs(shell_dirs, dir_path.clone());
         }
-    } else {
-        println!("Err: cd: provide an absolute directory path please");
+        Ok(())
     }
 }
 
 
 fn update_dirs(shell_dirs: &mut ShellDirs, new_current: PathBuf) {
-    //shell_dirs.previous = PathBuf::from(shell_dirs.current.as_path());
     shell_dirs.previous = shell_dirs.current.clone();
     shell_dirs.current = new_current;
 }
