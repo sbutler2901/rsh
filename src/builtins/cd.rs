@@ -2,23 +2,25 @@ use std::path::PathBuf;
 use std::env;
 
 use shelldirs::ShellDirs;
-use utils::is_dir_path;
+use utils::is_absolute_dir_path;
 use dirpatherror::DirPathError;
 
 pub fn cd(shell_dirs: &mut ShellDirs, dir_path: &PathBuf) -> Result<(), DirPathError> {
-    if dir_path.is_absolute() {
+/*    if dir_path.is_absolute() {
         Err(DirPathError::NotAbsolutePath)
     } else if is_dir_path(dir_path)? {
         Err(DirPathError::NotDirectoryPath)
+    } else {*/
+    //if is_absolute_dir_path(dir_path)? {
+    is_absolute_dir_path(dir_path)?;
+    if let Err(e) = env::set_current_dir(dir_path) {
+        // TODO - Determine best way to handle this error
+        println!("Error setting current dir to {}: {}", dir_path.display(), e);
     } else {
-        if let Err(e) = env::set_current_dir(dir_path) {
-            // TODO - Determine best way to handle this error
-            println!("Error setting current dir to {}: {}", dir_path.display(), e);
-        } else {
-            update_dirs(shell_dirs, dir_path.clone());
-        }
-        Ok(())
+        update_dirs(shell_dirs, dir_path.clone());
     }
+    Ok(())
+    //}
 }
 
 

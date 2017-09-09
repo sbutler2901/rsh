@@ -81,11 +81,14 @@ fn main() {
                     if let Some(received_path) = cmd_str_iter.next() {
                         let orig_path = PathBuf::from(received_path);
                         let dir_path = relative_to_absolute(&shell_dirs, &orig_path);
-                        if is_dir_path(&dir_path) {
+                        if let Err(e) = builtins::cd::cd(&mut shell_dirs, &dir_path) {
+                            println!("cd: {}", e);
+                        }
+                        /*if is_absolute_dir_path(&dir_path) {
                             builtins::cd::cd(&mut shell_dirs, &dir_path);
                         } else {
                             println!("cd: not a directory: {}", orig_path.display());
-                        }
+                        }*/
                     }
                  },
                  "pwd" => {
@@ -99,15 +102,20 @@ fn main() {
                     if let Some(received_path) = cmd_str_iter.next() {
                         let orig_path = PathBuf::from(received_path);
                         let dir_path = relative_to_absolute(&shell_dirs, &orig_path);
-                        if is_dir_path(&dir_path) {
+                        if let Err(e) = builtins::dirstack::pushd(&mut pushed_dirs, &mut shell_dirs, &dir_path) {
+                            println!("pushd: {}", e);
+                        }
+                        /*if is_absolute_dir_path(&dir_path) {
                             builtins::dirstack::pushd(&mut pushed_dirs, &mut shell_dirs, &dir_path).unwrap();
                         } else {
                             println!("pushd: not a directory: {}", orig_path.display());
-                        }
+                        }*/
                     }
                                     },
                 "popd" => {
-                    builtins::dirstack::popd(&mut pushed_dirs, &mut shell_dirs);
+                    if let Err(e) = builtins::dirstack::popd(&mut pushed_dirs, &mut shell_dirs) {
+                        println!("popd: {}", e);
+                    }
                 },
                 "dirs" => {
                     builtins::dirstack::dirs(&pushed_dirs);

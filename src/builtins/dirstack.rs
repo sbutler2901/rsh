@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 use shelldirs::ShellDirs;
 use builtins::cd::cd;
-use utils::is_dir_path;
+use utils::is_absolute_dir_path;
 use dirpatherror::DirPathError;
 
-
+/* Displays the directory stack */
 pub fn dirs(pushed_dirs: &Vec<PathBuf>) {
     if !pushed_dirs.is_empty() {
         let pushed_reversed_iter = pushed_dirs.iter().rev();
@@ -17,11 +17,19 @@ pub fn dirs(pushed_dirs: &Vec<PathBuf>) {
     }
 }
 
+/* Pushes the current dir onto the dir stack & changes to dir_path */
 pub fn pushd(pushed_dirs: &mut Vec<PathBuf>, shell_dirs: &mut ShellDirs, dir_path: &PathBuf) -> Result<(), DirPathError> {
-    if !dir_path.is_absolute() {
+    /*if !dir_path.is_absolute() {
        Err(DirPathError::NotAbsolutePath) 
-    } else {
-        match is_dir_path(dir_path) {
+    } else {*/
+        /*let is_dir =*/ 
+        is_absolute_dir_path(dir_path)?;
+        cd(shell_dirs, dir_path)?;
+        pushed_dirs.push(PathBuf::from(shell_dirs.previous.as_path()));
+        dirs(&pushed_dirs);
+        Ok(())
+
+        /*match is_dir_path(dir_path) {
             Err(e) => Err(e),
             Ok(_) => {
                 pushed_dirs.push(PathBuf::from(shell_dirs.current.as_path()));
@@ -29,17 +37,19 @@ pub fn pushd(pushed_dirs: &mut Vec<PathBuf>, shell_dirs: &mut ShellDirs, dir_pat
                 dirs(&pushed_dirs);
                 Ok(())
             }
-        }
-    }
+        }*/
+    //}
 }
 
-pub fn popd(pushed_dirs: &mut Vec<PathBuf>, shell_dirs: &mut ShellDirs) {
+/* Pops the dir stack and changes to the returned directory */
+pub fn popd(pushed_dirs: &mut Vec<PathBuf>, shell_dirs: &mut ShellDirs) -> Result<(), DirPathError> {
     if let Some(popped_dir) = pushed_dirs.pop() {
-        cd(shell_dirs, &popped_dir);
+        cd(shell_dirs, &popped_dir)?;
         dirs(&pushed_dirs);
     } else {
         println!("popd: directory stack is empty");
     }
+    Ok(())
 }
 
 #[cfg(test)]
