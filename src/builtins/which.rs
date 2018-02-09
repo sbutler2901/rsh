@@ -4,7 +4,7 @@ use std::process::Command;
 pub fn which(cmd: Option<&str>) {
     if let Some(cmd_unwrapped) = cmd {
         match cmd_unwrapped {
-            "bg" | "cd" | "dirs" | "fg" | "popd" | "pushd" | "pwd" | "which"
+            "bg" | "cd" | "dirs" | "fg" | "popd" | "pushd" | "pwd" | "which" | "jobs"
                 => { println!("{} : shell builtin command", cmd_unwrapped); },
             _ => {
                 if let Ok(mut child) = Command::new("/usr/bin/which")

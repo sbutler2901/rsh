@@ -5,6 +5,7 @@ use std::process::ExitStatus;
 use std::path::PathBuf;
 use std::str::SplitWhitespace;
 use std::os::unix::process::ExitStatusExt;
+use std::error::Error;
 
 mod builtins;
 mod shelldirs;
@@ -22,6 +23,7 @@ use utils::*;
 // 6. alias
 // 7. pushd / popd / dirs
 // 8. setopts
+// 9. export
 //
 // Features to be implemented:
 // 1. Start up files: rshrc, etc.
@@ -78,17 +80,21 @@ fn main() {
         if let Some(cmd_unwrapped) = cmd_wrapped {
             match cmd_unwrapped {
                 "cd" => {
+                    let dir_path;
                     if let Some(received_path) = cmd_str_iter.next() {
                         let orig_path = PathBuf::from(received_path);
-                        let dir_path = relative_to_absolute(&shell_dirs, &orig_path);
-                        if is_dir_path(&dir_path) {
-                            builtins::cd::cd(&mut shell_dirs, &dir_path);
-                        } else {
-                            println!("cd: not a directory: {}", orig_path.display());
+                        dir_path = relative_to_absolute(&shell_dirs, &orig_path);
+                        if let Err(e) = builtins::cd::cd(&mut shell_dirs, &dir_path) {
+                            println!("cd: {}", e.description());
+                        }
+                    } else {
+                        dir_path = shell_dirs.user_home.clone();
+                        if let Err(e) = builtins::cd::cd(&mut shell_dirs, &dir_path) {
+                            println!("cd: {}", e.description());
                         }
                     }
-                 },
-                 "pwd" => {
+                },
+                "pwd" => {
                      builtins::pwd::pwd(&shell_dirs);
                 },
                 "which" => {
@@ -99,18 +105,21 @@ fn main() {
                     if let Some(received_path) = cmd_str_iter.next() {
                         let orig_path = PathBuf::from(received_path);
                         let dir_path = relative_to_absolute(&shell_dirs, &orig_path);
-                        if is_dir_path(&dir_path) {
-                            builtins::dirstack::pushd(&mut pushed_dirs, &mut shell_dirs, &dir_path).unwrap();
-                        } else {
-                            println!("pushd: not a directory: {}", orig_path.display());
+                        if let Err(e) = builtins::dirstack::pushd(&mut pushed_dirs, &mut shell_dirs, &dir_path) {
+                            println!("pushd: {}", e.description());
                         }
                     }
-                                    },
+                },
                 "popd" => {
-                    builtins::dirstack::popd(&mut pushed_dirs, &mut shell_dirs);
+                    if let Err(e) = builtins::dirstack::popd(&mut pushed_dirs, &mut shell_dirs) {
+                        println!("popd: {}", e.description());
+                    }
                 },
                 "dirs" => {
                     builtins::dirstack::dirs(&pushed_dirs);
+                },
+                "fg" | "bg" | "jobs" => {
+                    println!("TODO");
                 },
                 "exit" => { break; },
                 _ => {

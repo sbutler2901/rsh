@@ -18,6 +18,7 @@ pub fn relative_to_absolute(shell_dirs: &ShellDirs, path: &PathBuf) -> PathBuf {
         if let Some(parent) = shell_dirs.current.parent() {
             parent_path = parent.to_path_buf();
         } else {
+            // Current path is root
             parent_path = shell_dirs.current.clone();
         }
 
@@ -51,11 +52,11 @@ pub fn relative_to_absolute(shell_dirs: &ShellDirs, path: &PathBuf) -> PathBuf {
 
 // Only returns an Ok(bool) value if it is an absolute dir path. Else, it returns
 // the corresponding DirPathError
-pub fn is_dir_path(dir_path: &PathBuf) -> Result<bool, DirPathError> {
+pub fn is_absolute_dir_path(dir_path: &PathBuf) -> Result<bool, DirPathError> {
     let mut is_dir_path = Err(DirPathError::NotAbsolutePath);
     if dir_path.is_absolute() {
         if let Ok(metadata) = dir_path.metadata() {
-            let is_dir_path = match metadata.is_dir() {
+            is_dir_path = match metadata.is_dir() {
                 true => Ok(true),
                 false => Err(DirPathError::NotDirectoryPath),
             };
