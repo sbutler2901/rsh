@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use shelldirs::ShellDirs;
 use builtins::cd::cd;
-use utils::is_absolute_dir_path;
+//use utils::is_absolute_dir_path;
 use dirpatherror::DirPathError;
 
 /* Displays the directory stack */
@@ -18,27 +18,12 @@ pub fn dirs(pushed_dirs: &Vec<PathBuf>) {
 }
 
 /* Pushes the current dir onto the dir stack & changes to dir_path */
-pub fn pushd(pushed_dirs: &mut Vec<PathBuf>, shell_dirs: &mut ShellDirs, dir_path: &PathBuf) -> Result<(), DirPathError> {
-    /*if !dir_path.is_absolute() {
-       Err(DirPathError::NotAbsolutePath) 
-    } else {*/
-        /*let is_dir =*/ 
-        is_absolute_dir_path(dir_path)?;
+pub fn pushd(pushed_dirs: &mut Vec<PathBuf>, shell_dirs: &mut ShellDirs, dir_path: &PathBuf) -> Result<(), DirPathError> { 
+        //is_absolute_dir_path(dir_path)?;
         cd(shell_dirs, dir_path)?;
-        pushed_dirs.push(PathBuf::from(shell_dirs.previous.as_path()));
+        pushed_dirs.push(shell_dirs.previous.clone());
         dirs(&pushed_dirs);
         Ok(())
-
-        /*match is_dir_path(dir_path) {
-            Err(e) => Err(e),
-            Ok(_) => {
-                pushed_dirs.push(PathBuf::from(shell_dirs.current.as_path()));
-                cd(shell_dirs, dir_path);
-                dirs(&pushed_dirs);
-                Ok(())
-            }
-        }*/
-    //}
 }
 
 /* Pops the dir stack and changes to the returned directory */

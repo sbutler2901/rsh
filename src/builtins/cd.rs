@@ -5,13 +5,9 @@ use shelldirs::ShellDirs;
 use utils::is_absolute_dir_path;
 use dirpatherror::DirPathError;
 
+// TODO: handle current dir paths without precedding "./"
+// TODO: handle dir paths that don't exist
 pub fn cd(shell_dirs: &mut ShellDirs, dir_path: &PathBuf) -> Result<(), DirPathError> {
-/*    if dir_path.is_absolute() {
-        Err(DirPathError::NotAbsolutePath)
-    } else if is_dir_path(dir_path)? {
-        Err(DirPathError::NotDirectoryPath)
-    } else {*/
-    //if is_absolute_dir_path(dir_path)? {
     is_absolute_dir_path(dir_path)?;
     if let Err(e) = env::set_current_dir(dir_path) {
         // TODO - Determine best way to handle this error
@@ -20,7 +16,6 @@ pub fn cd(shell_dirs: &mut ShellDirs, dir_path: &PathBuf) -> Result<(), DirPathE
         update_dirs(shell_dirs, dir_path.clone());
     }
     Ok(())
-    //}
 }
 
 

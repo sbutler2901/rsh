@@ -18,6 +18,7 @@ pub fn relative_to_absolute(shell_dirs: &ShellDirs, path: &PathBuf) -> PathBuf {
         if let Some(parent) = shell_dirs.current.parent() {
             parent_path = parent.to_path_buf();
         } else {
+            // Current path is root
             parent_path = shell_dirs.current.clone();
         }
 
