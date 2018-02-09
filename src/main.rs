@@ -89,9 +89,15 @@ fn main() {
                         } else {
                             println!("cd: not a directory: {}", orig_path.display());
                         }*/
+                    } else {
+                        let orig_path = PathBuf::from("~");
+                        let dir_path = relative_to_absolute(&shell_dirs, &orig_path);
+                        if let Err(e) = builtins::cd::cd(&mut shell_dirs, &dir_path) {
+                            println!("cd: {}", e);
+                        }
                     }
-                 },
-                 "pwd" => {
+                },
+                "pwd" => {
                      builtins::pwd::pwd(&shell_dirs);
                 },
                 "which" => {
@@ -119,6 +125,9 @@ fn main() {
                 },
                 "dirs" => {
                     builtins::dirstack::dirs(&pushed_dirs);
+                },
+                "fg" | "bg" | "jobs" => {
+                    println!("TODO");
                 },
                 "exit" => { break; },
                 _ => {
