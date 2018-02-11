@@ -5,8 +5,6 @@ use shelldirs::ShellDirs;
 use utils::is_absolute_dir_path;
 use dirpatherror::DirPathError;
 
-// TODO: handle current dir paths without precedding "./"
-// TODO: handle dir paths that don't exist
 pub fn cd(shell_dirs: &mut ShellDirs, dir_path: &PathBuf) -> Result<(), DirPathError> {
     is_absolute_dir_path(dir_path)?;
     if let Err(e) = env::set_current_dir(dir_path) {
@@ -104,7 +102,7 @@ mod tests {
 
         let path = "/etc";
         let previous = shell_dirs.current.clone();
-        cd(&mut shell_dirs, &PathBuf::from(path));
+        assert_eq!(cd(&mut shell_dirs, &PathBuf::from(path)).is_err(), false);
         assert_eq!(shell_dirs.current, PathBuf::from(path));
         assert_eq!(shell_dirs.previous, previous);
     }
@@ -117,21 +115,21 @@ mod tests {
         let mut path = "index.html";
         let mut current = shell_dirs.current.clone();
         let mut previous = shell_dirs.previous.clone();
-        cd(&mut shell_dirs, &PathBuf::from(path));
+        assert_eq!(cd(&mut shell_dirs, &PathBuf::from(path)).is_err(), true);
         assert_eq!(shell_dirs.current, current);
         assert_eq!(shell_dirs.previous, previous);
 
         path = "./index.html";
         current = shell_dirs.current.clone();
         previous = shell_dirs.previous.clone();
-        cd(&mut shell_dirs, &PathBuf::from(path));
+        assert_eq!(cd(&mut shell_dirs, &PathBuf::from(path)).is_err(), true);
         assert_eq!(shell_dirs.current, current);
         assert_eq!(shell_dirs.previous, previous);
 
         path = "/tmp/index.html";
         current = shell_dirs.current.clone();
         previous = shell_dirs.previous.clone();
-        cd(&mut shell_dirs, &PathBuf::from(path));
+        assert_eq!(cd(&mut shell_dirs, &PathBuf::from(path)).is_err(), true);
         assert_eq!(shell_dirs.current, current);
         assert_eq!(shell_dirs.previous, previous);
     }
