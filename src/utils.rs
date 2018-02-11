@@ -45,8 +45,10 @@ pub fn relative_to_absolute(shell_dirs: &ShellDirs, path: &PathBuf) -> PathBuf {
                 absolute = shell_dirs.previous.join(stripped);
             }
         }
+    } else if !path.starts_with("/") {
+        absolute = shell_dirs.current.join(path);
     }
-    //println!("Absolute path is: {}", joined.display());
+    println!("Absolute path is: {}", absolute.display());
     absolute
 }
 
@@ -60,6 +62,8 @@ pub fn is_absolute_dir_path(dir_path: &PathBuf) -> Result<bool, DirPathError> {
                 true => Ok(true),
                 false => Err(DirPathError::NotDirectoryPath),
             };
+        } else {
+            is_dir_path = Err(DirPathError::DirectoryNotFound);
         }
     }
     is_dir_path

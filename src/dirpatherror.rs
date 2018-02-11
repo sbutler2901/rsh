@@ -5,6 +5,7 @@ use std::fmt;
 pub enum DirPathError {
     NotAbsolutePath,
     NotDirectoryPath,
+    DirectoryNotFound
 }
 
 impl Error for DirPathError {
@@ -16,6 +17,9 @@ impl Error for DirPathError {
             DirPathError::NotDirectoryPath => {
                 "The path provided was not to a directory"
             },
+            DirPathError::DirectoryNotFound => {
+                "The specified directory does not exist"
+            }
         }
     }
 }
@@ -28,6 +32,9 @@ impl fmt::Display for DirPathError {
             },
             DirPathError::NotDirectoryPath => {
                 f.write_str("NotDirectoryPath")
+            },
+            DirPathError::DirectoryNotFound => {
+                f.write_str("DirectoryNotFound")
             },
         }
     }
