@@ -43,7 +43,7 @@ mod tests {
 
     #[test]
     fn dirs_handles_non_empty_stack() {
-        let pushed_dirs: Vec<PathBuf> = Vec::new();
+        let mut pushed_dirs: Vec<PathBuf> = Vec::new();
         pushed_dirs.push(PathBuf::from("/etc"));
         dirs(&pushed_dirs);
     }
@@ -56,22 +56,36 @@ mod tests {
 
     #[test]
     fn pushd_handles_relative_path() {
-        let pushed_dirs: Vec<PathBuf> = Vec::new();
-        let shell_dirs = ShellDirs::new();
+        let mut pushed_dirs: Vec<PathBuf> = Vec::new();
+        let mut shell_dirs = ShellDirs::new();
         ShellDirs::setup(&mut shell_dirs);
 
-        pushd(&mut pushed_dirs, &mut shell_dirs, &PathBuf::from("./"));
-        pushd(&mut pushed_dirs, &mut shell_dirs, &PathBuf::from("../"));
-        pushd(&mut pushed_dirs, &mut shell_dirs, &PathBuf::from("~/"));
-        pushd(&mut pushed_dirs, &mut shell_dirs, &PathBuf::from("-/"));
+        assert_eq!(pushd(&mut pushed_dirs, &mut shell_dirs, &PathBuf::from("./")).is_err(), true);
+        assert_eq!(pushd(&mut pushed_dirs, &mut shell_dirs, &PathBuf::from("../")).is_err(), true);
+        assert_eq!(pushd(&mut pushed_dirs, &mut shell_dirs, &PathBuf::from("~/")).is_err(), true);
+        assert_eq!(pushd(&mut pushed_dirs, &mut shell_dirs, &PathBuf::from("-/")).is_err(), true);
     }
 
     #[test]
     fn pushd_handles_non_dir_path() {
+        let mut pushed_dirs: Vec<PathBuf> = Vec::new();
+        let mut shell_dirs = ShellDirs::new();
+        ShellDirs::setup(&mut shell_dirs);
 
+        assert_eq!(pushd(&mut pushed_dirs, &mut shell_dirs, &PathBuf::from("/test.txt")).is_err(), true);
+        assert_eq!(pushd(&mut pushed_dirs, &mut shell_dirs, &PathBuf::from("./test.txt")).is_err(), true);
+        assert_eq!(pushd(&mut pushed_dirs, &mut shell_dirs, &PathBuf::from("../test.txt")).is_err(), true);
+        assert_eq!(pushd(&mut pushed_dirs, &mut shell_dirs, &PathBuf::from("~/test.txt")).is_err(), true);
+        assert_eq!(pushd(&mut pushed_dirs, &mut shell_dirs, &PathBuf::from("-/test.txt")).is_err(), true);
     }
 
     #[test]
     fn pushd_handles_absolute_dir_path() {
+        let mut pushed_dirs: Vec<PathBuf> = Vec::new();
+        let mut shell_dirs = ShellDirs::new();
+        ShellDirs::setup(&mut shell_dirs);
+
+        assert_eq!(pushd(&mut pushed_dirs, &mut shell_dirs, &PathBuf::from("/etc")).is_err(), false);
+
     }
 }

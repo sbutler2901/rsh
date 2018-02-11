@@ -45,24 +45,28 @@ pub fn relative_to_absolute(shell_dirs: &ShellDirs, path: &PathBuf) -> PathBuf {
                 absolute = shell_dirs.previous.join(stripped);
             }
         }
+    } else if !path.starts_with("/") {
+        absolute = shell_dirs.current.join(path);
     }
-    //println!("Absolute path is: {}", joined.display());
+    println!("Absolute path is: {}", absolute.display());
     absolute
 }
 
 // Only returns an Ok(bool) value if it is an absolute dir path. Else, it returns
 // the corresponding DirPathError
 pub fn is_absolute_dir_path(dir_path: &PathBuf) -> Result<bool, DirPathError> {
-    let mut is_dir_path = Err(DirPathError::NotAbsolutePath);
+    let mut is_absolute_dir_path = Err(DirPathError::NotAbsolutePath);
     if dir_path.is_absolute() {
         if let Ok(metadata) = dir_path.metadata() {
-            is_dir_path = match metadata.is_dir() {
+            is_absolute_dir_path = match metadata.is_dir() {
                 true => Ok(true),
                 false => Err(DirPathError::NotDirectoryPath),
             };
+        } else {
+            is_absolute_dir_path = Err(DirPathError::DirectoryNotFound);
         }
     }
-    is_dir_path
+    is_absolute_dir_path
 }
 
 #[cfg(test)]
@@ -70,39 +74,39 @@ mod tests {
     use super::*;
 
     #[test]
-    fn is_dir_path_handle_relative() {
+    fn is_absolute_dir_path_handle_relative() {
         // Current
-        assert_eq!(is_dir_path(&PathBuf::from(".")), false);
-        assert_eq!(is_dir_path(&PathBuf::from("./tmp")), false);
-        assert_eq!(is_dir_path(&PathBuf::from("./tmp/test.txt")), false);
+        assert_eq!(is_absolute_dir_path(&PathBuf::from(".")).is_err(), true);
+        assert_eq!(is_absolute_dir_path(&PathBuf::from("./tmp")).is_err(), true);
+        assert_eq!(is_absolute_dir_path(&PathBuf::from("./tmp/test.txt")).is_err(), true);
 
         // Previous
-        assert_eq!(is_dir_path(&PathBuf::from("..")), false);
-        assert_eq!(is_dir_path(&PathBuf::from("../tmp")), false);
-        assert_eq!(is_dir_path(&PathBuf::from("../tmp/test.txt")), false);
+        assert_eq!(is_absolute_dir_path(&PathBuf::from("..")).is_err(), true);
+        assert_eq!(is_absolute_dir_path(&PathBuf::from("../tmp")).is_err(), true);
+        assert_eq!(is_absolute_dir_path(&PathBuf::from("../tmp/test.txt")).is_err(), true);
 
         // User Home
-        assert_eq!(is_dir_path(&PathBuf::from("~")), false);
-        assert_eq!(is_dir_path(&PathBuf::from("~/tmp")), false);
-        assert_eq!(is_dir_path(&PathBuf::from("~/tmp/test.txt")), false);
+        assert_eq!(is_absolute_dir_path(&PathBuf::from("~")).is_err(), true);
+        assert_eq!(is_absolute_dir_path(&PathBuf::from("~/tmp")).is_err(), true);
+        assert_eq!(is_absolute_dir_path(&PathBuf::from("~/tmp/test.txt")).is_err(), true);
 
         // Previous
-        assert_eq!(is_dir_path(&PathBuf::from("-")), false);
-        assert_eq!(is_dir_path(&PathBuf::from("-/tmp")), false);
-        assert_eq!(is_dir_path(&PathBuf::from("-/tmp/test.txt")), false);
+        assert_eq!(is_absolute_dir_path(&PathBuf::from("-")).is_err(), true);
+        assert_eq!(is_absolute_dir_path(&PathBuf::from("-/tmp")).is_err(), true);
+        assert_eq!(is_absolute_dir_path(&PathBuf::from("-/tmp/test.txt")).is_err(), true);
     }
 
     #[test]
-    fn is_dir_path_handle_absolute() {
-        assert_eq!(is_dir_path(&PathBuf::from("/")), true);
-        assert_eq!(is_dir_path(&PathBuf::from("/etc/ssh")), true);
+    fn is_absolute_dir_path_handle_absolute() {
+        assert_eq!(is_absolute_dir_path(&PathBuf::from("/")).unwrap(), true);
+        assert_eq!(is_absolute_dir_path(&PathBuf::from("/etc/ssh")).unwrap(), true);
     }
 
     #[test]
-    fn is_dir_path_handle_file_name() {
-        assert_eq!(is_dir_path(&PathBuf::from("/test.txt")), false);
-        assert_eq!(is_dir_path(&PathBuf::from("/etc/test.txt")), false);
-        assert_eq!(is_dir_path(&PathBuf::from("~/test.txt")), false);
+    fn is_absolute_dir_path_handle_file_name() {
+        assert_eq!(is_absolute_dir_path(&PathBuf::from("/test.txt")).is_err(), true);
+        assert_eq!(is_absolute_dir_path(&PathBuf::from("/etc/test.txt")).is_err(), true);
+        assert_eq!(is_absolute_dir_path(&PathBuf::from("~/test.txt")).is_err(), true);
     }
 
     #[test]
