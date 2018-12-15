@@ -2,3 +2,5 @@ main
 target
 .DS_Store
 *.swp
+.idea
+rsh.iml

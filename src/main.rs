@@ -6,6 +6,7 @@ use std::path::PathBuf;
 use std::str::SplitWhitespace;
 use std::os::unix::process::ExitStatusExt;
 use std::error::Error;
+use std::collections::HashMap;
 
 mod builtins;
 mod shelldirs;
@@ -66,6 +67,8 @@ fn main() {
 
     let mut shell_dirs = shelldirs::ShellDirs::new();
     let mut pushed_dirs: Vec<PathBuf> = Vec::new();     //TODO - Add limit to stack
+    let mut aliases: HashMap<String, String> = HashMap::new();
+
     ShellDirs::setup(&mut shell_dirs); 
 
     loop {
@@ -78,55 +81,78 @@ fn main() {
 
         let cmd_wrapped = cmd_str_iter.next();
         if let Some(cmd_unwrapped) = cmd_wrapped {
-            match cmd_unwrapped {
-                "cd" => {
-                    let dir_path;
-                    if let Some(received_path) = cmd_str_iter.next() {
-                        let orig_path = PathBuf::from(received_path);
-                        dir_path = relative_to_absolute(&shell_dirs, &orig_path);
-                        if let Err(e) = builtins::cd::cd(&mut shell_dirs, &dir_path) {
-                            println!("cd: {}", e.description());
+            let exit_status;
+            if let Some(alias_cmd) = builtins::alias::get_aliased(&aliases.clone(), &cmd_unwrapped) {
+                exit_status = exec_cmd(&alias_cmd, &mut cmd_str_iter);
+                println!("{} - {}", cmd_unwrapped, exit_status);
+            } else {
+                match cmd_unwrapped {
+                    "alias" => {
+                        if let Some(mapping) = cmd_str_iter.next() {
+                            if let Some(equal_index) = mapping.find("='") {
+                                // Only accepts well formed input "<alias>='<mapping>'"
+                                let (key, tmp_value_0) = mapping.split_at(equal_index);
+                                let tmp_value_1 = tmp_value_0.replacen("='", "", 1);
+                                let value = tmp_value_1.replace("'", "");
+                                if let Err(e) = builtins::alias::alias(&mut aliases, key, value) {
+                                    println!("alias: {}", e);
+                                }
+                            } else {
+                                println!("alias: bad mapping");
+                            }
+                        } else {
+                            builtins::alias::show_aliases(&aliases);
                         }
-                    } else {
-                        dir_path = shell_dirs.user_home.clone();
-                        if let Err(e) = builtins::cd::cd(&mut shell_dirs, &dir_path) {
-                            println!("cd: {}", e.description());
+                    },
+                    "cd" => {
+                        let dir_path;
+                        if let Some(received_path) = cmd_str_iter.next() {
+                            let orig_path = PathBuf::from(received_path);
+                            dir_path = relative_to_absolute(&shell_dirs, &orig_path);
+                            if let Err(e) = builtins::cd::cd(&mut shell_dirs, &dir_path) {
+                                println!("cd: {}", e.description());
+                            }
+                        } else {
+                            dir_path = shell_dirs.user_home.clone();
+                            if let Err(e) = builtins::cd::cd(&mut shell_dirs, &dir_path) {
+                                println!("cd: {}", e.description());
+                            }
                         }
-                    }
-                },
-                "pwd" => {
-                     builtins::pwd::pwd(&shell_dirs);
-                },
-                "which" => {
-                    let second_cmd = cmd_str_iter.next();
-                    builtins::which::which(second_cmd);
-                },
-                "pushd" => {
-                    if let Some(received_path) = cmd_str_iter.next() {
-                        let orig_path = PathBuf::from(received_path);
-                        let dir_path = relative_to_absolute(&shell_dirs, &orig_path);
-                        if let Err(e) = builtins::dirstack::pushd(&mut pushed_dirs, &mut shell_dirs, &dir_path) {
-                            println!("pushd: {}", e.description());
+                    },
+                    "dirs" => {
+                        builtins::dirstack::dirs(&pushed_dirs);
+                    },
+                    "popd" => {
+                        if let Err(e) = builtins::dirstack::popd(&mut pushed_dirs, &mut shell_dirs) {
+                            println!("popd: {}", e.description());
                         }
-                    }
-                },
-                "popd" => {
-                    if let Err(e) = builtins::dirstack::popd(&mut pushed_dirs, &mut shell_dirs) {
-                        println!("popd: {}", e.description());
-                    }
-                },
-                "dirs" => {
-                    builtins::dirstack::dirs(&pushed_dirs);
-                },
-                "fg" | "bg" | "jobs" => {
-                    println!("TODO");
-                },
-                "exit" => { break; },
-                _ => {
-                    let exit_status = exec_cmd(&cmd_unwrapped, &mut cmd_str_iter);
-                    println!("{} - {}", cmd_unwrapped, exit_status);
-                },
-            };
+                    },
+                    "pushd" => {
+                        if let Some(received_path) = cmd_str_iter.next() {
+                            let orig_path = PathBuf::from(received_path);
+                            let dir_path = relative_to_absolute(&shell_dirs, &orig_path);
+                            if let Err(e) = builtins::dirstack::pushd(&mut pushed_dirs, &mut shell_dirs, &dir_path) {
+                                println!("pushd: {}", e.description());
+                            }
+                        }
+                    },
+                    "pwd" => {
+                         builtins::pwd::pwd(&shell_dirs);
+                    },
+                    "which" => {
+                        let second_cmd = cmd_str_iter.next();
+                        builtins::which::which(second_cmd);
+                    },
+                    "fg" | "bg" | "jobs" => {
+                        println!("TODO");
+                    },
+                    "exit" => { break; },
+                    _ => {
+                        exit_status = exec_cmd(&cmd_unwrapped, &mut cmd_str_iter);
+                        println!("{} - {}", cmd_unwrapped, exit_status);
+                    },
+                };
+            }
         }
     }
 }
