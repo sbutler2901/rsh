@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 use std::env;
 
+extern crate dirs;
+
 pub struct ShellDirs {
     pub user_home: PathBuf,
     pub current: PathBuf,
@@ -21,7 +23,7 @@ impl ShellDirs {
         if let Ok(current_dir) = env::current_dir() {
             shell_dirs.current = current_dir;
         }
-        if let Some(user_home) = env::home_dir() {
+        if let Some(user_home) = dirs::home_dir() {
             shell_dirs.user_home = user_home;
             shell_dirs.previous = shell_dirs.user_home.clone();
         }

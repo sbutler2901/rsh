@@ -90,11 +90,12 @@ fn main() {
                     "alias" => {
                         if let Some(mapping) = cmd_str_iter.next() {
                             if let Some(equal_index) = mapping.find("='") {
+                                // TODO: fix execution of aliases with arguments
+                                // TODO: handle double quotes
                                 // Only accepts well formed input "<alias>='<mapping>'"
-                                let (key, tmp_value_0) = mapping.split_at(equal_index);
-                                let tmp_value_1 = tmp_value_0.replacen("='", "", 1);
-                                let value = tmp_value_1.replace("'", "");
-                                if let Err(e) = builtins::alias::alias(&mut aliases, key, value) {
+                                let parsed_command: Vec<&str> = input_str.split("'").collect();
+                                let (key, _) = mapping.split_at(equal_index);
+                                if let Err(e) = builtins::alias::alias(&mut aliases, key, parsed_command[1].to_string()) {
                                     println!("alias: {}", e);
                                 }
                             } else {
