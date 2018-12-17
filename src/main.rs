@@ -3,7 +3,6 @@ use std::io::Write;
 use std::process::Command;
 use std::process::ExitStatus;
 use std::path::PathBuf;
-use std::str::SplitWhitespace;
 use std::os::unix::process::ExitStatusExt;
 use std::error::Error;
 use std::collections::HashMap;
@@ -36,7 +35,7 @@ use utils::*;
 // 1. Result: Ok(), etc
 // 2. Option: Some(), None
 
-fn exec_cmd(cmd: &str, cmd_str_iter: &mut SplitWhitespace) -> ExitStatus {
+fn exec_cmd(cmd: &str, cmd_str_iter: &mut Vec<String>) -> ExitStatus {
     let exit_status;
     if let Ok(mut child) = Command::new(cmd).args(cmd_str_iter).spawn() {
         if let Ok(status) = child.wait() {
@@ -67,7 +66,7 @@ fn main() {
 
     let mut shell_dirs = shelldirs::ShellDirs::new();
     let mut pushed_dirs: Vec<PathBuf> = Vec::new();     //TODO - Add limit to stack
-    let mut aliases: HashMap<String, String> = HashMap::new();
+    let mut aliases: HashMap<String, builtins::alias::Alias> = HashMap::new();
 
     ShellDirs::setup(&mut shell_dirs); 
 
@@ -82,15 +81,16 @@ fn main() {
         let cmd_wrapped = cmd_str_iter.next();
         if let Some(cmd_unwrapped) = cmd_wrapped {
             let exit_status;
-            if let Some(alias_cmd) = builtins::alias::get_aliased(&aliases.clone(), &cmd_unwrapped) {
-                exit_status = exec_cmd(&alias_cmd, &mut cmd_str_iter);
+            if let Some(alias) = builtins::alias::get_aliased(&aliases.clone(), &cmd_unwrapped) {
+                let mut args = alias.args.clone();
+                args.append(&mut cmd_str_iter.map(|arg| arg.to_string()).collect());
+                exit_status = exec_cmd(alias.cmd.as_str(), &mut args);
                 println!("{} - {}", cmd_unwrapped, exit_status);
             } else {
                 match cmd_unwrapped {
                     "alias" => {
                         if let Some(mapping) = cmd_str_iter.next() {
                             if let Some(equal_index) = mapping.find("='") {
-                                // TODO: fix execution of aliases with arguments
                                 // TODO: handle double quotes
                                 // Only accepts well formed input "<alias>='<mapping>'"
                                 let parsed_command: Vec<&str> = input_str.split("'").collect();
@@ -149,7 +149,8 @@ fn main() {
                     },
                     "exit" => { break; },
                     _ => {
-                        exit_status = exec_cmd(&cmd_unwrapped, &mut cmd_str_iter);
+                        let mut args = cmd_str_iter.map(|arg| arg.to_string()).collect();
+                        exit_status = exec_cmd(&cmd_unwrapped, &mut args);
                         println!("{} - {}", cmd_unwrapped, exit_status);
                     },
                 };
