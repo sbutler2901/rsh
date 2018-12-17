@@ -99,7 +99,7 @@ fn main() {
                                     println!("alias: {}", e);
                                 }
                             } else {
-                                println!("alias: bad mapping");
+                                println!("alias: bad mapping, requires form: <alias>='<mapping>'");
                             }
                         } else {
                             builtins::alias::show_aliases(&aliases);
