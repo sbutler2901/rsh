@@ -141,8 +141,13 @@ fn main() {
                          builtins::pwd::pwd(&shell_dirs);
                     },
                     "which" => {
-                        let second_cmd = cmd_str_iter.next();
-                        builtins::which::which(second_cmd);
+                        if let Some(second_cmd) = cmd_str_iter.next() {
+                            if let Some(alias) = builtins::alias::get_aliased(&aliases, second_cmd) {
+                                println!("{}: aliased to {}", second_cmd, alias);
+                            } else {
+                                builtins::which::which(second_cmd);
+                            }
+                        }
                     },
                     "fg" | "bg" | "jobs" => {
                         println!("TODO");

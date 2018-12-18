@@ -1,10 +1,42 @@
 use std::collections::HashMap;
 use std::collections::BTreeMap;
+use std::fmt;
+use std::ops::{Deref,DerefMut};
+
+#[derive(Clone, Debug)]
+pub struct Args(Vec<String>);
+
+impl fmt::Display for Args {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0.join(" "))?;
+        Ok(())
+    }
+}
+
+impl Deref for Args {
+    type Target = Vec<String>;
+
+    fn deref(&self) -> &Vec<String> {
+        &self.0
+    }
+}
+
+impl DerefMut for Args {
+    fn deref_mut(&mut self) -> &mut <Self as Deref>::Target {
+        &mut self.0
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Alias {
     pub cmd: String,
-    pub args: Vec<String>
+    pub args: Args
+}
+
+impl fmt::Display for Alias {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} {}", self.cmd, self.args)
+    }
 }
 
 /// Creates the alias to be used
@@ -13,7 +45,7 @@ pub fn alias(aliases: &mut HashMap<String, Alias>, key: &str, value: String) -> 
     if let Some(cmd) = cmd_str_iter.next() {
         let mut alias = Alias {
             cmd: cmd.to_string(),
-            args: cmd_str_iter.map(|arg| arg.to_string()).collect()
+            args: Args(cmd_str_iter.map(|arg| arg.to_string()).collect())
         };
         aliases.insert(key.to_string(), alias);
         return Ok(())
@@ -34,6 +66,6 @@ pub fn show_aliases(aliases: &HashMap<String, Alias>) {
         bt_map.insert(key, val);
     }
     for (key, val) in bt_map.iter() {
-        println!("{}='{:#?}'", key, val);
+        println!("{}='{}'", key, val);
     }
 }
