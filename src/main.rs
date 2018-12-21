@@ -98,8 +98,8 @@ fn main() {
                                 if let Err(e) = builtins::alias::alias(&mut aliases, key, parsed_command[1].to_string()) {
                                     println!("alias: {}", e);
                                 }
-                            } else {
-                                println!("alias: bad mapping, requires form: <alias>='<mapping>'");
+                            } else if let Some(alias) = builtins::alias::get_aliased(&aliases.clone(), &mapping) {
+                                println!("{}='{} {}'", mapping, alias.cmd, alias.args)
                             }
                         } else {
                             builtins::alias::show_aliases(&aliases);
