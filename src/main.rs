@@ -91,11 +91,15 @@ fn main() {
                     "alias" => {
                         if let Some(mapping) = cmd_str_iter.next() {
                             if let Some(equal_index) = mapping.find("='") {
-                                // TODO: handle double quotes
-                                // Only accepts well formed input "<alias>='<mapping>'"
-                                let parsed_command: Vec<&str> = input_str.split("'").collect();
+                                let parsed_cmd: Vec<&str> = input_str.split("'").collect();
                                 let (key, _) = mapping.split_at(equal_index);
-                                if let Err(e) = builtins::alias::alias(&mut aliases, key, parsed_command[1].to_string()) {
+                                if let Err(e) = builtins::alias::alias(&mut aliases, key, parsed_cmd[1].to_string()) {
+                                    println!("alias: {}", e);
+                                }
+                            } else if let Some(equal_index) = mapping.find("=\"") {
+                                let parsed_cmd: Vec<&str> = input_str.split("\"").collect();
+                                let (key, _) = mapping.split_at(equal_index);
+                                if let Err(e) = builtins::alias::alias(&mut aliases, key, parsed_cmd[1].to_string()) {
                                     println!("alias: {}", e);
                                 }
                             } else if let Some(alias) = builtins::alias::get_aliased(&aliases.clone(), &mapping) {
